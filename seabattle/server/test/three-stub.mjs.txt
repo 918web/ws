@@ -1,0 +1,277 @@
+/* Тестовая заглушка three.js: только для автотестов без сети и без WebGL. */
+export class Vector2 {
+  constructor(x = 0, y = 0) { this.x = x; this.y = y }
+  set(x, y) { this.x = x; this.y = y; return this }
+  copy(v) { this.x = v.x; this.y = v.y; return this }
+  clone() { return new Vector2(this.x, this.y) }
+  add(v) { this.x += v.x; this.y += v.y; return this }
+  sub(v) { this.x -= v.x; this.y -= v.y; return this }
+  multiplyScalar(s) { this.x *= s; this.y *= s; return this }
+  length() { return Math.hypot(this.x, this.y) }
+  normalize() { const l = this.length() || 1; return this.multiplyScalar(1 / l) }
+}
+export class Vector3 {
+  constructor(x = 0, y = 0, z = 0) { this.x = x; this.y = y; this.z = z }
+  set(x, y, z) { this.x = x; this.y = y; this.z = z; return this }
+  setScalar(s) { return this.set(s, s, s) }
+  copy(v) { return this.set(v.x, v.y, v.z) }
+  clone() { return new Vector3(this.x, this.y, this.z) }
+  add(v) { this.x += v.x; this.y += v.y; this.z += v.z; return this }
+  addScalar(s) { this.x += s; this.y += s; this.z += s; return this }
+  addVectors(a, b) { return this.set(a.x + b.x, a.y + b.y, a.z + b.z) }
+  addScaledVector(v, s) { this.x += v.x * s; this.y += v.y * s; this.z += v.z * s; return this }
+  sub(v) { this.x -= v.x; this.y -= v.y; this.z -= v.z; return this }
+  subVectors(a, b) { return this.set(a.x - b.x, a.y - b.y, a.z - b.z) }
+  multiplyScalar(s) { this.x *= s; this.y *= s; this.z *= s; return this }
+  divideScalar(s) { return this.multiplyScalar(1 / (s || 1)) }
+  length() { return Math.hypot(this.x, this.y, this.z) }
+  lengthSq() { return this.x ** 2 + this.y ** 2 + this.z ** 2 }
+  normalize() { const l = this.length() || 1; return this.multiplyScalar(1 / l) }
+  setLength(l) { return this.normalize().multiplyScalar(l) }
+  distanceTo(v) { return Math.hypot(this.x - v.x, this.y - v.y, this.z - v.z) }
+  dot(v) { return this.x * v.x + this.y * v.y + this.z * v.z }
+  cross(v) { return this.crossVectors(this.clone(), v) }
+  crossVectors(a, b) { return this.set(a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x) }
+  lerp(v, t) { this.x += (v.x - this.x) * t; this.y += (v.y - this.y) * t; this.z += (v.z - this.z) * t; return this }
+  lerpVectors(a, b, t) { return this.set(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t, a.z + (b.z - a.z) * t) }
+  applyQuaternion() { return this }
+  applyAxisAngle() { return this }
+  applyMatrix4() { return this }
+  project() { return this }
+  unproject() { return this }
+  negate() { return this.multiplyScalar(-1) }
+  toArray() { return [this.x, this.y, this.z] }
+  equals(v) { return this.x === v.x && this.y === v.y && this.z === v.z }
+}
+export class Vector4 extends Vector3 { constructor(x = 0, y = 0, z = 0, w = 1) { super(x, y, z); this.w = w } }
+export class Euler extends Vector3 { constructor(x = 0, y = 0, z = 0) { super(x, y, z); this.order = 'XYZ' } }
+export class Quaternion {
+  constructor() { this.x = 0; this.y = 0; this.z = 0; this.w = 1 }
+  set() { return this } copy() { return this } clone() { return new Quaternion() }
+  setFromUnitVectors() { return this } setFromAxisAngle() { return this }
+  multiply() { return this } slerp() { return this } identity() { return this }
+}
+export class Color {
+  constructor(c) { this.r = 1; this.g = 1; this.b = 1; if (c !== undefined) this.set(c) }
+  set(c) { this.value = c; return this }
+  setHex(h) { this.value = h; return this }
+  setHSL() { return this }
+  clone() { return new Color(this.value) }
+  copy(c) { this.value = c.value; return this }
+  getHexString() { return '000000' }
+  lerp() { return this }
+  multiplyScalar() { return this }
+  offsetHSL() { return this }
+}
+export class Matrix4 { constructor() { this.elements = new Array(16).fill(0) } identity() { return this } copy() { return this } makeRotationY() { return this } setPosition() { return this } multiply() { return this } }
+export class Layers { set() {} enable() {} test() { return true } }
+
+let uid = 0
+export class Object3D {
+  constructor() {
+    this.id = ++uid
+    this.uuid = 'obj-' + this.id
+    this.name = ''
+    this.type = 'Object3D'
+    this.children = []
+    this.parent = null
+    this.position = new Vector3()
+    this.rotation = new Euler()
+    this.scale = new Vector3(1, 1, 1)
+    this.quaternion = new Quaternion()
+    this.up = new Vector3(0, 1, 0)
+    this.matrixWorld = new Matrix4()
+    this.visible = true
+    this.castShadow = false
+    this.receiveShadow = false
+    this.frustumCulled = true
+    this.renderOrder = 0
+    this.userData = {}
+    this.layers = new Layers()
+    this.isObject3D = true
+  }
+  add(...objs) { for (const o of objs) { if (!o) continue; o.parent = this; this.children.push(o) } return this }
+  remove(...objs) { for (const o of objs) { const i = this.children.indexOf(o); if (i >= 0) { this.children.splice(i, 1); o.parent = null } } return this }
+  clear() { this.children.length = 0; return this }
+  traverse(cb) { cb(this); for (const c of this.children.slice()) c.traverse(cb) }
+  traverseVisible(cb) { if (this.visible) this.traverse(cb) }
+  getObjectByName(n) { let f = null; this.traverse(o => { if (!f && o.name === n) f = o }); return f }
+  lookAt() { return this }
+  updateMatrixWorld() { return this }
+  updateMatrix() { return this }
+  localToWorld(v) { return v }
+  worldToLocal(v) { return v }
+  getWorldPosition(v) { return (v || new Vector3()).copy(this.position) }
+  attach(o) { return this.add(o) }
+  removeFromParent() { if (this.parent) this.parent.remove(this); return this }
+  raycast() {}
+}
+export class Group extends Object3D { constructor() { super(); this.type = 'Group'; this.isGroup = true } }
+export class Scene extends Object3D { constructor() { super(); this.type = 'Scene'; this.background = null; this.fog = null; this.environment = null } }
+export class Camera extends Object3D { constructor() { super(); this.matrixWorldInverse = new Matrix4(); this.projectionMatrix = new Matrix4() } }
+export class PerspectiveCamera extends Camera {
+  constructor(fov = 50, aspect = 1, near = 0.1, far = 2000) { super(); this.fov = fov; this.aspect = aspect; this.near = near; this.far = far; this.isPerspectiveCamera = true }
+  updateProjectionMatrix() {}
+}
+export class Light extends Object3D {
+  constructor(color, intensity = 1) { super(); this.color = new Color(color); this.intensity = intensity; this.shadow = { mapSize: new Vector2(1024, 1024), camera: { near: 0.5, far: 500, left: -10, right: 10, top: 10, bottom: -10, updateProjectionMatrix() {} }, bias: 0, normalBias: 0, radius: 1 }; this.target = new Object3D() }
+}
+export class AmbientLight extends Light {}
+export class HemisphereLight extends Light {}
+export class DirectionalLight extends Light {}
+export class PointLight extends Light { constructor(c, i, d) { super(c, i); this.distance = d; this.decay = 2 } }
+export class SpotLight extends Light {}
+export class Fog { constructor(color, near, far) { this.color = new Color(color); this.near = near; this.far = far } }
+export class FogExp2 { constructor(color, density) { this.color = new Color(color); this.density = density } }
+
+class BufferAttributeBase {
+  constructor(array, itemSize) { this.array = array; this.itemSize = itemSize; this.count = array ? array.length / itemSize : 0; this.needsUpdate = false }
+  setXYZ(i, x, y, z) { const a = this.array; if (a) { a[i * this.itemSize] = x; a[i * this.itemSize + 1] = y; a[i * this.itemSize + 2] = z } return this }
+  setXY(i, x, y) { const a = this.array; if (a) { a[i * this.itemSize] = x; a[i * this.itemSize + 1] = y } return this }
+  setXYZW(i, x, y, z, w) { this.setXYZ(i, x, y, z); if (this.array) this.array[i * this.itemSize + 3] = w; return this }
+  setX(i, v) { if (this.array) this.array[i * this.itemSize] = v; return this }
+  setY(i, v) { if (this.array) this.array[i * this.itemSize + 1] = v; return this }
+  setZ(i, v) { if (this.array) this.array[i * this.itemSize + 2] = v; return this }
+  setW(i, v) { if (this.array) this.array[i * this.itemSize + 3] = v; return this }
+  getX(i) { return this.array ? this.array[i * this.itemSize] : 0 }
+  getY(i) { return this.array ? this.array[i * this.itemSize + 1] : 0 }
+  getZ(i) { return this.array ? this.array[i * this.itemSize + 2] : 0 }
+  getW(i) { return this.array ? this.array[i * this.itemSize + 3] : 0 }
+  setUsage() { return this }
+  clone() { return new BufferAttributeBase(this.array ? this.array.slice() : null, this.itemSize) }
+}
+export class BufferAttribute extends BufferAttributeBase {}
+export class Float32BufferAttribute extends BufferAttributeBase {
+  constructor(array, itemSize) { super(array instanceof Float32Array ? array : new Float32Array(array), itemSize) }
+}
+export class BufferGeometry {
+  constructor() { this.attributes = { position: new Float32BufferAttribute(new Float32Array(96), 3), normal: new Float32BufferAttribute(new Float32Array(96), 3), uv: new Float32BufferAttribute(new Float32Array(64), 2) }; this.index = null; this.boundingBox = null; this.boundingSphere = { radius: 1, center: new Vector3() }; this.parameters = {}; this.groups = [] }
+  setAttribute(n, a) { this.attributes[n] = a; return this }
+  getAttribute(n) { return this.attributes[n] }
+  deleteAttribute(n) { delete this.attributes[n]; return this }
+  setIndex(i) { this.index = i; return this }
+  setFromPoints(points) { const arr = new Float32Array(points.length * 3); points.forEach((p, i) => { arr[i * 3] = p.x || 0; arr[i * 3 + 1] = p.y || 0; arr[i * 3 + 2] = p.z || 0 }); this.setAttribute('position', new Float32BufferAttribute(arr, 3)); return this }
+  computeVertexNormals() { return this }
+  computeBoundingBox() { this.boundingBox = { min: new Vector3(), max: new Vector3(), getCenter: v => (v || new Vector3()), getSize: v => (v || new Vector3()) }; return this }
+  computeBoundingSphere() { return this }
+  translate() { return this } rotateX() { return this } rotateY() { return this } rotateZ() { return this }
+  scale() { return this } center() { return this } toNonIndexed() { return this } applyMatrix4() { return this }
+  clone() { return new BufferGeometry() }
+  dispose() {}
+}
+function geom(name) {
+  return class extends BufferGeometry {
+    constructor(...args) { super(); this.type = name; this.parameters = { args } }
+  }
+}
+export const PlaneGeometry = geom('PlaneGeometry')
+export const BoxGeometry = geom('BoxGeometry')
+export const SphereGeometry = geom('SphereGeometry')
+export const CylinderGeometry = geom('CylinderGeometry')
+export const ConeGeometry = geom('ConeGeometry')
+export const RingGeometry = geom('RingGeometry')
+export const CircleGeometry = geom('CircleGeometry')
+export const TorusGeometry = geom('TorusGeometry')
+export const CapsuleGeometry = geom('CapsuleGeometry')
+export const LatheGeometry = geom('LatheGeometry')
+export const ExtrudeGeometry = geom('ExtrudeGeometry')
+export const ShapeGeometry = geom('ShapeGeometry')
+export const IcosahedronGeometry = geom('IcosahedronGeometry')
+export const TetrahedronGeometry = geom('TetrahedronGeometry')
+export const EdgesGeometry = geom('EdgesGeometry')
+export const TubeGeometry = geom('TubeGeometry')
+
+export class Material {
+  constructor(p = {}) { Object.assign(this, { opacity: 1, transparent: false, visible: true, side: 0, depthWrite: true, depthTest: true, blending: 1, needsUpdate: false }, p); this.color = p.color instanceof Color ? p.color : new Color(p.color); this.emissive = new Color(p.emissive); this.uniforms = p.uniforms || {} }
+  clone() { return new this.constructor({}) }
+  dispose() {}
+}
+export class MeshBasicMaterial extends Material {}
+export class MeshStandardMaterial extends Material {}
+export class MeshPhysicalMaterial extends Material {}
+export class MeshLambertMaterial extends Material {}
+export class MeshPhongMaterial extends Material {}
+export class LineBasicMaterial extends Material {}
+export class LineDashedMaterial extends Material {}
+export class PointsMaterial extends Material {}
+export class ShaderMaterial extends Material {}
+export class SpriteMaterial extends Material {}
+
+export class Mesh extends Object3D {
+  constructor(geometry, material) { super(); this.type = 'Mesh'; this.isMesh = true; this.geometry = geometry || new BufferGeometry(); this.material = material || new MeshBasicMaterial() }
+}
+export class InstancedMesh extends Mesh { constructor(g, m, count) { super(g, m); this.count = count; this.instanceMatrix = { needsUpdate: false } } setMatrixAt() {} setColorAt() {} }
+export class Line extends Object3D { constructor(g, m) { super(); this.isLine = true; this.geometry = g; this.material = m } computeLineDistances() { return this } }
+export class LineSegments extends Line { constructor(g, m) { super(g, m); this.isLineSegments = true } }
+export class Points extends Object3D { constructor(g, m) { super(); this.isPoints = true; this.geometry = g; this.material = m } }
+export class Sprite extends Object3D { constructor(m) { super(); this.isSprite = true; this.material = m || new SpriteMaterial(); this.center = new Vector2(0.5, 0.5) } }
+
+export class Texture { constructor(image) { this.image = image; this.needsUpdate = false; this.colorSpace = ''; this.wrapS = 0; this.wrapT = 0; this.repeat = new Vector2(1, 1); this.offset = new Vector2(); this.anisotropy = 1 } dispose() {} }
+export class CanvasTexture extends Texture {}
+export class DataTexture extends Texture {}
+
+export class Shape {
+  constructor() { this.curves = [] }
+  moveTo() { return this } lineTo() { return this } quadraticCurveTo() { return this }
+  bezierCurveTo() { return this } absarc() { return this } closePath() { return this }
+  splineThru() { return this } getPoints() { return [new Vector2()] }
+}
+export class Path extends Shape {}
+export class CatmullRomCurve3 { constructor(points) { this.points = points || [] } getPoint(t, target) { return (target || new Vector3()) } getPoints() { return this.points } }
+export class QuadraticBezierCurve3 extends CatmullRomCurve3 {}
+
+export class Raycaster {
+  constructor() { this.ray = { origin: new Vector3(), direction: new Vector3() }; this.params = {} }
+  setFromCamera() {}
+  intersectObject() { return [] }
+  intersectObjects() { return [] }
+}
+export class Clock {
+  constructor() { this.t0 = Date.now(); this.prev = this.t0 }
+  getDelta() { const n = Date.now(); const d = (n - this.prev) / 1000; this.prev = n; return d }
+  getElapsedTime() { return (Date.now() - this.t0) / 1000 }
+  start() {} stop() {}
+}
+
+export class WebGLRenderer {
+  constructor(params = {}) {
+    this.domElement = params.canvas || document.createElement('canvas')
+    this.domElement.width = 800; this.domElement.height = 600
+    this.shadowMap = { enabled: false, type: 1, needsUpdate: false }
+    this.outputColorSpace = ''
+    this.toneMapping = 0
+    this.toneMappingExposure = 1
+    this.info = { render: {}, memory: {} }
+    this.capabilities = { getMaxAnisotropy: () => 1, isWebGL2: true }
+  }
+  setSize(w, h) { this.domElement.style.width = w + 'px'; this.domElement.style.height = h + 'px' }
+  setPixelRatio() {}
+  setClearColor() {}
+  setAnimationLoop(fn) { if (fn) requestAnimationFrame(function loop() { fn(performance.now()); requestAnimationFrame(loop) }) }
+  render() {}
+  clear() {}
+  dispose() {}
+  getContext() { return { getExtension: () => null } }
+  compile() {}
+}
+
+export const MathUtils = {
+  clamp: (v, a, b) => Math.min(b, Math.max(a, v)),
+  lerp: (a, b, t) => a + (b - a) * t,
+  degToRad: d => d * Math.PI / 180,
+  radToDeg: r => r * 180 / Math.PI,
+  randFloat: (a, b) => a + Math.random() * (b - a),
+  randFloatSpread: r => (Math.random() - 0.5) * r,
+  smoothstep: (x, a, b) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t) },
+  euclideanModulo: (n, m) => ((n % m) + m) % m
+}
+
+export const DoubleSide = 2, FrontSide = 0, BackSide = 1
+export const AdditiveBlending = 2, NormalBlending = 1, MultiplyBlending = 4, SubtractiveBlending = 3
+export const SRGBColorSpace = 'srgb', LinearSRGBColorSpace = 'srgb-linear', NoColorSpace = ''
+export const PCFShadowMap = 1, PCFSoftShadowMap = 2, BasicShadowMap = 0, VSMShadowMap = 3
+export const ACESFilmicToneMapping = 4, NoToneMapping = 0, ReinhardToneMapping = 2
+export const RepeatWrapping = 1000, ClampToEdgeWrapping = 1001, MirroredRepeatWrapping = 1002
+export const NearestFilter = 1003, LinearFilter = 1006
+export const AlwaysDepth = 1, LessEqualDepth = 3
+export const RGBAFormat = 1023

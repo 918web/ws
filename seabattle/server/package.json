@@ -1,0 +1,13 @@
+{
+  "name": "seabattle3d-server",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Онлайн-сервер для «Морского боя 3D»: статика, WebSocket-матчи, лидерборд",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test/test-protocol.js"
+  },
+  "engines": { "node": ">=18" },
+  "dependencies": {}
+}

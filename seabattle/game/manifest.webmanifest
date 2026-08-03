@@ -1,0 +1,23 @@
+{
+  "name": "МОРСКОЙ БОЙ 3D — тактический дисплей",
+  "short_name": "Морской бой",
+  "description": "Трёхмерный морской бой с тактическим ИИ-противником.",
+  "lang": "ru",
+  "dir": "ltr",
+  "id": "/",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "display_override": ["fullscreen", "standalone", "minimal-ui"],
+  "orientation": "any",
+  "background_color": "#050b11",
+  "theme_color": "#050b11",
+  "categories": ["games", "strategy"],
+  "prefer_related_applications": false,
+  "icons": [
+    { "src": "icons/favicon-64.png", "sizes": "64x64", "type": "image/png" },
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

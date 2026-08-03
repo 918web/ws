@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="32%" r="78%">
+      <stop offset="0%" stop-color="#0d2534"/>
+      <stop offset="55%" stop-color="#071520"/>
+      <stop offset="100%" stop-color="#03090e"/>
+    </radialGradient>
+    <linearGradient id="hull" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#eaf6fa"/>
+      <stop offset="100%" stop-color="#9db6c2"/>
+    </linearGradient>
+    <linearGradient id="sweep" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#3fe0cd" stop-opacity=".55"/>
+      <stop offset="100%" stop-color="#3fe0cd" stop-opacity="0"/>
+    </linearGradient>
+    <clipPath id="disc"><circle cx="256" cy="256" r="150"/></clipPath>
+  </defs>
+
+  <rect width="512" height="512" fill="url(#bg)"/>
+
+  <!-- radar disc -->
+  <circle cx="256" cy="256" r="150" fill="#08202c" stroke="rgba(63,224,205,.30)" stroke-width="3"/>
+  <g clip-path="url(#disc)">
+    <path d="M256 256 L256 96 A160 160 0 0 1 400 232 Z" fill="url(#sweep)"/>
+    <g stroke="rgba(63,224,205,.20)" stroke-width="2">
+      <line x1="106" y1="196" x2="406" y2="196"/>
+      <line x1="106" y1="256" x2="406" y2="256"/>
+      <line x1="106" y1="316" x2="406" y2="316"/>
+      <line x1="196" y1="106" x2="196" y2="406"/>
+      <line x1="256" y1="106" x2="256" y2="406"/>
+      <line x1="316" y1="106" x2="316" y2="406"/>
+    </g>
+    <circle cx="256" cy="256" r="92" fill="none" stroke="rgba(63,224,205,.22)" stroke-width="2"/>
+    <!-- sea line -->
+    <path d="M96 322 q40 -12 80 0 t80 0 t80 0 t80 0 v100 H96 Z" fill="rgba(63,224,205,.09)"/>
+  </g>
+
+  <!-- crosshair ticks -->
+  <g stroke="#3fe0cd" stroke-width="9" stroke-linecap="round">
+    <line x1="256" y1="74" x2="256" y2="114"/>
+    <line x1="256" y1="398" x2="256" y2="438"/>
+    <line x1="74" y1="256" x2="114" y2="256"/>
+    <line x1="398" y1="256" x2="438" y2="256"/>
+  </g>
+
+  <!-- warship silhouette -->
+  <g transform="translate(0,10)">
+    <path d="M138 300 L374 300 L344 336 Q256 352 168 336 Z" fill="url(#hull)"/>
+    <path d="M214 300 L214 268 L262 268 L262 300 Z" fill="#cddfe8"/>
+    <path d="M228 268 L228 232 L246 232 L246 268 Z" fill="#e6f2f7"/>
+    <rect x="236" y="196" width="5" height="40" fill="#cddfe8"/>
+    <path d="M282 300 L282 276 L322 276 L322 300 Z" fill="#b9cfda"/>
+    <!-- gun barrels -->
+    <rect x="158" y="280" width="62" height="11" rx="5.5" fill="#e6f2f7" transform="rotate(-16 189 285)"/>
+  </g>
+
+  <!-- muzzle flash -->
+  <circle cx="152" cy="278" r="23" fill="#ff9a3c" opacity=".28"/>
+  <circle cx="152" cy="278" r="14" fill="#ff9a3c"/>
+  <circle cx="152" cy="278" r="6" fill="#fff3d0"/>
+</svg>
