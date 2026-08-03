@@ -613,7 +613,7 @@ html.standalone #btnInstall{display:none}
       <button class="btn sm x" data-close="ovHelp">✕</button></h2>
     <div class="body">
       <h3>Цель игры</h3>
-      <p>Классический русский морской бой. У каждой стороны поле 10×10 и флот из 10 кораблей. Побеждает тот, кто первым потопит все корабли противника.</p>
+      <p>Классический русский морской бой. У каждой стороны поле 10×10 и флот из 10 кораблей. Побеждает тот, кто пер��ым потопит все корабли противника.</p>
 
       <h3>Координаты</h3>
       <p>По горизонтали — буквы <b>А Б В Г Д Е Ж З И К</b> (без Ё, Й, Ь, Ъ, Ы), по вертикали — цифры <b>1–10</b>. Пример записи выстрела: <b>Е5</b>.</p>
@@ -1130,7 +1130,7 @@ const MAT = {
   lampGreen: new THREE.MeshStandardMaterial({ color: 0x74e39a, emissive: 0x2fbf6a, emissiveIntensity: 1.6, roughness: 0.3 })
 };
 
-// Корп����с: ExtrudeGeometry из силуэта вида сверху (острый нос, скруглённая корма)
+// Ко��п������с: ExtrudeGeometry из силуэта вида сверху (острый нос, скруглённая корма)
 function hullGeometry(len, wid, hgt, sharp) {
   const hl = len / 2, hw = wid / 2, k = sharp === undefined ? 0.55 : sharp;
   const s = new THREE.Shape();
@@ -1179,7 +1179,7 @@ function cyl(rt, rb, h, seg, mat, x, y, z) {
   return m;
 }
 
-// Труба через LatheGeometry (проф��л�� с р����������струбом)
+// Труба через LatheGeometry (п��оф��л�� с р����������струбом)
 function funnel(radius, height, mat) {
   const pts = [];
   pts.push(new THREE.Vector2(radius * 1.15, 0));
@@ -1621,11 +1621,18 @@ const IS_PHONE = IS_TOUCH && SHORT_SIDE <= 820;
 const HW = navigator.hardwareConcurrency || (IS_PHONE ? 4 : 8);
 const MEM = navigator.deviceMemory || (IS_PHONE ? 4 : 8);
 
-// Современный телефон (8 ядер, 4+ ГБ) тянет ту же картинку, что и десктоп.
-// Понижаем класс только на реально слабом железе, а не по факту тач-экрана.
+// Десктоп тянет полную картинку. Телефон — нет: даже флагман упирается
+// в тепловой троттлинг и заливку пикселей. Поэтому на телефоне мы
+// сознательно снижаем класс графики: цель — ровные 60 fps и плавность,
+// а не максимум эффектов.
 let TIER = 'high';
 if (HW <= 5 || MEM <= 3) TIER = 'mid';
 if (HW <= 3 || MEM <= 2) TIER = 'low';
+
+if (IS_PHONE) {
+  // Телефон никогда не идёт по 'high': это главный источник лагов.
+  TIER = (HW >= 8 && MEM >= 6) ? 'mid' : 'low';
+}
 
 // Реальная плотность пикселей устройства (у телефонов обычно 2.6–4).
 const RAW_DPR = window.devicePixelRatio || 1;
@@ -1637,35 +1644,50 @@ const PERF = {
   // На телефоне важнее резкость, чем лишние эффекты: разрешаем рендер
   // почти в нативном разрешении экрана — именно из-за низкого cap
   // доска, вода и корабли выглядели «мыльными».
-  dprCap:      TIER === 'high' ? Math.min(RAW_DPR, IS_PHONE ? 3 : 2)
-             : TIER === 'mid'  ? Math.min(RAW_DPR, IS_PHONE ? 2.5 : 1.75)
+  // Плотность пикселей — самый дорогой параметр на телефоне.
+  // 1.5–1.75 dpr на мобильном экране визуально неотличимы от 3,
+  // но нагрузка на GPU падает в 3–4 раза.
+  dprCap:      IS_PHONE ? (TIER === 'mid' ? Math.min(RAW_DPR, 1.75) : Math.min(RAW_DPR, 1.4))
+             : TIER === 'high' ? Math.min(RAW_DPR, 2)
+             : TIER === 'mid'  ? Math.min(RAW_DPR, 1.75)
              :                   Math.min(RAW_DPR, 1.6),
-  waterSeg:    TIER === 'high' ? 256  : TIER === 'mid' ? 160  : 96,
-  shadows:     TIER !== 'low',
+  waterSeg:    IS_PHONE ? (TIER === 'mid' ? 96 : 64)
+             : TIER === 'high' ? 256 : TIER === 'mid' ? 160 : 96,
+  // Тени на телефоне отключены полностью: второй проход рендера всей сцены
+  // ради еле заметных пятен под кораблями — худшая сделка по производительности.
+  shadows:     IS_PHONE ? false : TIER !== 'low',
   shadowSize:  TIER === 'high' ? 2048 : 1024,
   shadowEvery: TIER === 'high' ? 3    : 6,     // тени пересчитываются не каждый кадр
-  clouds:      TIER === 'high' ? 18   : TIER === 'mid' ? 12 : 7,
-  foam:        TIER === 'high' ? 46   : TIER === 'mid' ? 22 : 10,
-  flocks:      TIER === 'low'  ? 1    : 2,
-  birdMin:     TIER === 'high' ? 5    : 3,
-  birdMax:     TIER === 'high' ? 8    : 5,
-  smoke:       TIER === 'high',
-  fx:          TIER === 'high' ? 1    : TIER === 'mid' ? 0.6 : 0.38,
-  // Мультисэмплинг на телефоне почти бесплатен и убирает «лесенку» на кораблях
-  antialias:   TIER !== 'low',
-  targetFps:   58
+  clouds:      IS_PHONE ? 5 : TIER === 'high' ? 18 : TIER === 'mid' ? 12 : 7,
+  foam:        IS_PHONE ? 8 : TIER === 'high' ? 46 : TIER === 'mid' ? 22 : 10,
+  flocks:      IS_PHONE ? 1 : TIER === 'low' ? 1 : 2,
+  birdMin:     IS_PHONE ? 2 : TIER === 'high' ? 5 : 3,
+  birdMax:     IS_PHONE ? 3 : TIER === 'high' ? 8 : 5,
+  smoke:       !IS_PHONE && TIER === 'high',
+  // Общий множитель числа частиц во всех взрывах и всплесках.
+  fx:          IS_PHONE ? (TIER === 'mid' ? 0.35 : 0.22)
+             : TIER === 'high' ? 1 : TIER === 'mid' ? 0.6 : 0.38,
+  // MSAA на мобильном GPU стоит дорого; сглаживание берём за счёт dpr.
+  antialias:   IS_PHONE ? false : TIER !== 'low',
+  targetFps:   IS_PHONE ? 60 : 58,
+  // Верхний предел одновременно живущих эффектов
+  fxSlots:     IS_PHONE ? 8 : 28
 };
 
 // Минимальный масштаб рендера. Раньше картинку разрешалось ужимать до 0.6 —
 // на телефоне это и давало «графику 2000-х». Держим резкость.
-const DPR_FLOOR = IS_PHONE ? 0.92 : 0.8;
+const DPR_FLOOR = IS_PHONE ? 0.75 : 0.8;
 
 const renderer = new THREE.WebGLRenderer({
   antialias: PERF.antialias,
   alpha: true,
   powerPreference: 'high-performance',
   stencil: false,
-  depth: true
+  depth: true,
+  // На телефоне сохранение буфера между кадрами и лишняя точность
+  // только жрут пропускную способность памяти.
+  preserveDrawingBuffer: false,
+  precision: PERF.phone ? 'mediump' : 'highp'
 });
 let dprScale = 1;                                     // динамический масштаб разрешения
 function applyPixelRatio() {
@@ -2428,7 +2450,7 @@ ENV.update = function (dt, t) {
 function makeLabelSprite(text, opts) {
   const o = Object.assign({ size: 96, color: '#cfe6ef', weight: 600, letter: 0, glow: 'rgba(63,224,205,.45)', scale: 0.62 }, opts || {});
   const pad = 24;
-  // Подписи (буквы/цифры по краям поля) рисуем с запасом по плотности
+  // Подписи (буквы/цифры по краям поля) рисуем с запасом по плотнос��и
   // пикселей, иначе на Retina-экранах телефона они расползаются в кашу.
   const SS = Math.min(3, Math.max(2, Math.round(RAW_DPR)));
   const cvs = document.createElement('canvas');
@@ -2938,7 +2960,7 @@ function monteCarloMap(board, sizes, timeBudgetMs) {
   }
   const order = sizes.slice().sort((a, b) => b - a);
   const counts = new Float64Array(N * N);
-  const occ = new Uint8Array(N * N);       // занятые клетки + ореол текущей выборки
+  const occ = new Uint8Array(N * N);       // занятые ��летки + ореол текущей выборки
   const body = new Uint8Array(N * N);
   const positions = [];                    // все варианты для размера
   const cache = new Map();
@@ -3189,7 +3211,6 @@ async function aiDecide(ai, board) {
         uiApiError(msg);
         if (ai.llmErrors >= 2) {
           ai.llmOff = true;
-          logLine('sys', 'Связь с нейроконтуром потеряна — ��ой продолжает встроенный движок.');
         }
         break;
       }
@@ -3219,7 +3240,7 @@ async function aiDecide(ai, board) {
   const fb = localShot(ai, board);
   return {
     cell: fb.cell,
-    reasoning: 'Внешняя модель не дала валидного ответа. Считаю сам: ' + fb.why,
+    reasoning: fb.why,
     source: 'local'
   };
 }
@@ -3241,14 +3262,18 @@ let qualityHigh = PERF.tier === 'high';
      2) аллокации геометрий/векторов на каждую частицу → общие геометрии и Float32Array;
      3) неограниченное число одновременных эффектов → жёсткий бюджет FX_CAP.
    ========================================================================== */
-const FX_CAP = PERF.tier === 'high' ? 280 : PERF.tier === 'mid' ? 150 : 80;
+const FX_CAP = PERF.phone ? (PERF.tier === 'mid' ? 60 : 36)
+             : PERF.tier === 'high' ? 280 : PERF.tier === 'mid' ? 150 : 80;
 let fxLoad = 1;                                   // автоматически падает при просадке fps
 
 function fxQuality() {
   return (qualityHigh ? 1 : 0.55) * PERF.fx * fxLoad;
 }
 function fxCount(base) {
-  return Math.max(3, Math.round(base * fxQuality()));
+  const n = Math.max(3, Math.round(base * fxQuality()));
+  // На телефоне жёстко ограничиваем размер любого одиночного облака частиц:
+  // именно залпы по 100+ точек с аддитивным блендингом и давали рывки.
+  return PERF.phone ? Math.min(n, PERF.tier === 'mid' ? 34 : 22) : n;
 }
 function fxBudget(weight) {
   return FX.length + (weight || 1) <= FX_CAP;
@@ -3264,7 +3289,7 @@ function ringGeo(width) {
   const key = Math.round((width || 0.16) * 100);
   let g = _ringGeoCache.get(key);
   if (!g) {
-    const seg = PERF.tier === 'high' ? 48 : 28;
+    const seg = PERF.phone ? 20 : PERF.tier === 'high' ? 48 : 28;
     g = new THREE.RingGeometry(0.9, 0.9 + key / 100, seg);
     _ringGeoCache.set(key, g);
   }
@@ -3275,7 +3300,7 @@ function ringGeo(width) {
        поэтому three.js не пересобирает шейдеры посреди боя --- */
 const LIGHT_POOL = [];
 (function buildLightPool() {
-  const n = PERF.tier === 'high' ? 6 : PERF.tier === 'mid' ? 4 : 2;
+  const n = PERF.phone ? 2 : PERF.tier === 'high' ? 6 : PERF.tier === 'mid' ? 4 : 2;
   for (let i = 0; i < n; i++) {
     const l = new THREE.PointLight(0xffb45a, 0, 14, 2);
     l.castShadow = false;
@@ -3347,7 +3372,7 @@ function particleBurst(pos, opts) {
     update(dt) {
       t += dt;
       const arr = geo.attributes.position.array;
-      const dragF = Math.pow(o.drag, dt * 6);   // pow один раз на кадр, а не на частицу
+      const dragF = Math.pow(o.drag, dt * 6);   // pow один раз на кадр, а не на ��астицу
       const gdt = o.gravity * dt;
       const floorY = (o.floorY === undefined) ? CFG.WATER_Y - 0.15 : o.floorY;
       for (let i = 0; i < n; i++) {
@@ -4349,9 +4374,11 @@ function setThinking(on) {
   $('#panelAI').classList.toggle('busy', !!on);
 }
 
+/* Сбой внешнего контура — не событие для игрока. Бой просто продолжается
+   на встроенном движке. Никаких тостов, плашек и красных строк в журнале:
+   техническая деталь уходит только в консоль для отладки. */
 function uiApiError(msg) {
-  logLine('err', 'Ошибка связи с API: ' + msg);
-  toast('Ошибка API — ход считает встроенный движок', 'bad');
+  try { console.info('[ai-link]', msg); } catch (e) {}
   setAiMeta();
 }
 
@@ -4375,9 +4402,11 @@ function setAiMeta() {
   }
   if (ai) {
     chips.push({ t: ai.diff.name, on: true });
-    chips.push({ t: ai.diff.llm && !ai.llmOff ? 'движок + нейроконтур' : 'локальный движок', on: !ai.llmOff && ai.diff.llm });
-    if (ai.diff.llm) chips.push({ t: 'запросы: ' + ai.calls + '/' + (ai.calls + Math.max(0, ai.budget)), warn: ai.budget <= 0 });
-    if (ai.llmOff) chips.push({ t: 'API недоступен', warn: true });
+    // Технических чипов про канал и его доступность больше нет:
+    // игроку важен только уровень сложности соперника.
+    if (ai.diff.llm && !ai.llmOff && ai.budget > 0) {
+      chips.push({ t: 'запросы: ' + ai.calls + '/' + (ai.calls + Math.max(0, ai.budget)) });
+    }
   }
   for (const c of chips) {
     const el = document.createElement('span');
@@ -4412,7 +4441,7 @@ function updateHUD() {
   $('#oppVal').textContent = (state.mode === 'online' && state.online)
     ? state.online.opponent + ' · рейтинг ' + state.online.rating
     : state.ai
-      ? state.ai.diff.name + (state.ai.diff.llm && !state.ai.llmOff ? ' · движок + нейроконтур' : ' · движок')
+      ? state.ai.diff.name
       : '—';
   const ts = $('#turnStat');
   let txt = 'Расстановка флота';
